@@ -9,21 +9,6 @@
 
 <canvas id="glcanvas"></canvas>
 
-<script type="glsl/vertex" id="vertex">
-attribute vec4 a_position;
-void main() {
-    gl_Position = a_position;
-}
-</script>
-
-<script type="glsl/fragment" id="fragment">
-precision mediump float;
-
-void main(){
-    gl_FragColor = vec4(1, 0, 0.5, 1); 
-}
-</script>
-
 <script src="script.js"></script>
 </body>
 </html>
