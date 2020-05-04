@@ -58,44 +58,29 @@ function createProgram(gl, v, f) {
 	gl.deleteProgram(program);
 }
 
+function resizeCanvas(gl) {
+	const realToCSSPixels = window.devicePixelRatio; // для дисплеев повышенной четкости HD-DPI
+	const width = Math.floor(gl.canvas.scrollWidth * realToCSSPixels);
+	const height = Math.floor(gl.canvas.scrollHeight * realToCSSPixels);
+	gl.canvas.width = width;
+	gl.canvas.height = height;
+	gl.viewport(0, 0, width, height);
+}
+
 function drawWebglCanvas(f, v, gl) {
-	const renderGl = (gl) => {
-		gl.clearColor(0, 0, 0, 0);
-		gl.clear(gl.COLOR_BUFFER_BIT);
-		gl.useProgram(program);
-		gl.enableVertexAttribArray(positionAttributeLocation); // включаем атрибут
-		// Привязываем буфер положений
-		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-		
-		// Указываем атрибуту, как получать данные от positionBuffer (ARRAY_BUFFER)
-		const size = 2;          // 2 компоненты на итерацию
-		const type = gl.FLOAT;   // наши данные - 32-битные числа с плавающей точкой
-		const normalize = false; // не нормализовать данные
-		const stride = 0;        // 0 = перемещаться на size * sizeof(type) каждую итерацию для получения следующего положения
-		const offset = 0;        // начинать с начала буфера
-		gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
-	
-		const primitiveType = gl.TRIANGLES;
-		const count = 3;
-		gl.drawArrays(primitiveType, offset, count);
+	function renderGl(gl) {
+		// gl.clearColor(0, 0, 0, 0);
+		// gl.clear(gl.COLOR_BUFFER_BIT);
+		gl.drawArrays(gl.TRIANGLES, 0, 3);
 	}
 	function resizeGlAndCanvas(gl) {
-		function start() {
-			const width = gl.canvas.scrollWidth;
-			const height = gl.canvas.scrollHeight
-			gl.canvas.width = width;
-			gl.canvas.height = height;
-			gl.viewport(0, 0, width, height);
-		}
-		start();
+		resizeCanvas(gl);
 		const resizeFunc = () => {
-			start();
+			resizeCanvas(gl);
 			renderGl(gl);
 		};
-		const lazyFunc = debounce(resizeFunc, 100);
-		window.addEventListener('resize', () => {
-			lazyFunc();
-		});
+		const lazyFunc = debounce(resizeFunc, 10);
+		window.addEventListener('resize', lazyFunc);
 	}
 	resizeGlAndCanvas(gl);
 	const vertexShader = createShader(gl, gl.VERTEX_SHADER, v);
@@ -110,7 +95,24 @@ function drawWebglCanvas(f, v, gl) {
 		0.7, 0
 	]);
 	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-	renderGl(gl);
+	gl.clearColor(0, 0, 0, 0);
+	gl.clear(gl.COLOR_BUFFER_BIT);
+	gl.useProgram(program);
+	gl.enableVertexAttribArray(positionAttributeLocation); // включаем атрибут
+	// Привязываем буфер положений
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	
+	// Указываем атрибуту, как получать данные от positionBuffer (ARRAY_BUFFER)
+	const size = 2;          // 2 компоненты на итерацию
+	const type = gl.FLOAT;   // наши данные - 32-битные числа с плавающей точкой
+	const normalize = false; // не нормализовать данные
+	const stride = 0;        // 0 = перемещаться на size * sizeof(type) каждую итерацию для получения следующего положения
+	const offset = 0;        // начинать с начала буфера
+	gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
+
+	const primitiveType = gl.TRIANGLES;
+	const count = 3;
+	gl.drawArrays(primitiveType, offset, count);
 }
 
 void async function () {
