@@ -1,100 +1,29 @@
-function sendGetRequest(url) {
-	return fetch(url).then(response => {
-		return response.text();
-	});
-}
-
-function debounce(f, t) {
-	return function (args) {
-		let previousCall = this.lastCall;
-		this.lastCall = Date.now();
-		if (previousCall && ((this.lastCall - previousCall) <= t)) {
-			clearTimeout(this.lastCallTimer);
-		}
-		this.lastCallTimer = setTimeout(() => f(args), t);
-	}
-}
-
-let logger = (args) => console.log(args);
-let throttledLogger = debounce(logger, 200);
-window.addEventListener('resize', () => {
-	throttledLogger(1);
-});
-
-function initwebgl(canvas) {
-	const context = canvas.getContext("webgl2") ||
-	canvas.getContext("webgl") ||
-	canvas.getContext("experimental-webgl");
-	if (!context) {
-		alert('У вас не поддерживается webgl, используйте новый Google Chrome');
-	}
-	return context;
-}
-
-function createShader(gl, type, source) {
-	const shader = gl.createShader(type);
-	gl.shaderSource(shader, source);
-	gl.compileShader(shader);
-	const sucess = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-	if (sucess) {
-		return shader;
-	}
-
-	console.log(gl.getShaderInfoLog(shader));
-	gl.deleteShader(shader);
-}
-
-function createProgram(gl, v, f) {
-	const program = gl.createProgram();
-	gl.attachShader(program, v);
-	gl.attachShader(program, f);
-	gl.linkProgram(program);
-	const sucess = gl.getProgramParameter(program, gl.LINK_STATUS);
-	if (sucess) {
-		return program;
-	}
-
-	console.log(gl.getProgramInfoLog(program));
-	gl.deleteProgram(program);
-}
-
-function resizeCanvas(gl) {
-	const realToCSSPixels = window.devicePixelRatio; // для дисплеев повышенной четкости HD-DPI
-	const width = Math.floor(gl.canvas.scrollWidth * realToCSSPixels);
-	const height = Math.floor(gl.canvas.scrollHeight * realToCSSPixels);
-	gl.canvas.width = width;
-	gl.canvas.height = height;
-	gl.viewport(0, 0, width, height);
-}
-
-function drawWebglCanvas(f, v, gl) {
-	function renderGl(gl) {
-		// gl.clearColor(0, 0, 0, 0);
-		// gl.clear(gl.COLOR_BUFFER_BIT);
-		gl.drawArrays(gl.TRIANGLES, 0, 3);
-	}
+function drawWebglCanvas(f, v, gl, image) {
 	function resizeGlAndCanvas(gl) {
 		resizeCanvas(gl);
 		const resizeFunc = () => {
 			resizeCanvas(gl);
-			renderGl(gl);
 		};
-		const lazyFunc = debounce(resizeFunc, 10);
+		const lazyFunc = debounce(resizeFunc, 20);
 		window.addEventListener('resize', lazyFunc);
 	}
-	resizeGlAndCanvas(gl);
 	const vertexShader = createShader(gl, gl.VERTEX_SHADER, v);
 	const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, f);
 	const program = createProgram(gl, vertexShader, fragmentShader);
 	const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
+	const resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
 	const positionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 	const positions = new Float32Array([
-		0, 0,
-		0, 0.5,
-		0.7, 0
+		10, 20,
+		80, 20,
+		10, 30,
+		10, 30,
+		80, 20,
+		80, 30,
 	]);
 	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+	resizeGlAndCanvas(gl);
 	gl.clearColor(0, 0, 0, 0);
 	gl.clear(gl.COLOR_BUFFER_BIT);
 	gl.useProgram(program);
@@ -108,21 +37,64 @@ function drawWebglCanvas(f, v, gl) {
 	const normalize = false; // не нормализовать данные
 	const stride = 0;        // 0 = перемещаться на size * sizeof(type) каждую итерацию для получения следующего положения
 	const offset = 0;        // начинать с начала буфера
-	gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
 
-	const primitiveType = gl.TRIANGLES;
-	const count = 3;
-	gl.drawArrays(primitiveType, offset, count);
+	gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
+	gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+
+	// указываем координаты текстуры для прямоугольника
+	const texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
+	const texCoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+		0.0,  0.0,
+		1.0,  0.0,
+		0.0,  1.0,
+		0.0,  1.0,
+		1.0,  0.0,
+		1.0,  1.0]), gl.STATIC_DRAW);
+	gl.enableVertexAttribArray(texCoordLocation);
+	gl.vertexAttribPointer(texCoordLocation, size, type, normalize, stride, offset);
+
+	// создаём текстуру
+	const texture = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+
+	// задаём параметры, чтобы можно было отрисовать изображение любого размера
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+	
+	function render() {
+		const primitiveType = gl.TRIANGLES;
+		const offset = 0;
+		const count = 6;
+		gl.drawArrays(primitiveType, offset, count);
+	}
+	render();
 }
 
-void async function () {
+function main() {
+	const image = new Image();
+	image.src = 'https://picsum.photos/200/300';
+	image.addEventListener('load', () => {
+		render(image);
+	});
+}
+
+void async function getGlslAndDrawWebgl () {
 	const fragment = await sendGetRequest('fragment.glsl'); // получаю текст из файла
 	const vertex = await sendGetRequest('vertex.glsl'); // получаю текст из файла
-	// const fragment = document.querySelector('#fragment').innerHTML;
-	// const vertex = document.querySelector('#vertex').innerHTML;
 	const canvas = document.querySelector('#glcanvas');
 	const gl = initwebgl(canvas);
-    if (gl) {
-		drawWebglCanvas(fragment, vertex, gl);
+    if (!gl) {
+		return;
 	}
+	const image = new Image();
+	image.src = 'https://picsum.photos/200/300';
+	image.addEventListener('load', () => {
+		drawWebglCanvas(fragment, vertex, gl, image);
+	});
 }();
