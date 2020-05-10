@@ -10,78 +10,83 @@ function drawWebglCanvas(f, v, gl, image) {
 	const vertexShader = createShader(gl, gl.VERTEX_SHADER, v);
 	const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, f);
 	const program = createProgram(gl, vertexShader, fragmentShader);
-	const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
-	const resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
-	const positionBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-	const positions = new Float32Array([
-		10, 20,
-		80, 20,
-		10, 30,
-		10, 30,
-		80, 20,
-		80, 30,
-	]);
-	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-	resizeGlAndCanvas(gl);
-	gl.clearColor(0, 0, 0, 0);
-	gl.clear(gl.COLOR_BUFFER_BIT);
-	gl.useProgram(program);
-	gl.enableVertexAttribArray(positionAttributeLocation); // включаем атрибут
-	// Привязываем буфер положений
-	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-	
-	// Указываем атрибуту, как получать данные от positionBuffer (ARRAY_BUFFER)
-	const size = 2;          // 2 компоненты на итерацию
-	const type = gl.FLOAT;   // наши данные - 32-битные числа с плавающей точкой
-	const normalize = false; // не нормализовать данные
-	const stride = 0;        // 0 = перемещаться на size * sizeof(type) каждую итерацию для получения следующего положения
-	const offset = 0;        // начинать с начала буфера
 
-	gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
-	gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 
-	// указываем координаты текстуры для прямоугольника
-	const texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
-	const texCoordBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+	// look up where the vertex data needs to go.
+	var positionLocation = gl.getAttribLocation(program, "a_position");
+	var texcoordLocation = gl.getAttribLocation(program, "a_texCoord");
+
+	// Create a buffer to put three 2d clip space points in
+	var positionBuffer = gl.createBuffer();
+
+	// Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	// Set a rectangle the same size as the image.
+	setRectangle(gl, 0, 0, image.width, image.height);
+
+	// provide texture coordinates for the rectangle.
+	var texcoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
 		0.0,  0.0,
 		1.0,  0.0,
 		0.0,  1.0,
 		0.0,  1.0,
 		1.0,  0.0,
-		1.0,  1.0]), gl.STATIC_DRAW);
-	gl.enableVertexAttribArray(texCoordLocation);
-	gl.vertexAttribPointer(texCoordLocation, size, type, normalize, stride, offset);
+		1.0,  1.0,
+	]), gl.STATIC_DRAW);
 
-	// создаём текстуру
-	const texture = gl.createTexture();
+	var texture = gl.createTexture();
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 
-	// задаём параметры, чтобы можно было отрисовать изображение любого размера
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
 	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-	
+
+	var resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+
+	gl.clearColor(0, 0, 0, 0);
+	gl.clear(gl.COLOR_BUFFER_BIT);
+
+	gl.useProgram(program);
+
+
+	gl.enableVertexAttribArray(positionLocation);
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+
+	gl.enableVertexAttribArray(texcoordLocation);
+	gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+	gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+
+	gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
+
 	function render() {
-		const primitiveType = gl.TRIANGLES;
-		const offset = 0;
-		const count = 6;
+		var primitiveType = gl.TRIANGLES;
+		var offset = 0;
+		var count = 6;
 		gl.drawArrays(primitiveType, offset, count);
 	}
-	render();
 }
 
-function main() {
-	const image = new Image();
-	image.src = 'https://picsum.photos/200/300';
-	image.addEventListener('load', () => {
-		render(image);
-	});
+function setRectangle(gl, x, y, width, height) {
+	var x1 = x;
+	var x2 = x + width;
+	var y1 = y;
+	var y2 = y + height;
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+		x1, y1,
+		x2, y1,
+		x1, y2,
+		x1, y2,
+		x2, y1,
+		x2, y2,
+	]), gl.STATIC_DRAW);
 }
 
 void async function getGlslAndDrawWebgl () {
@@ -93,7 +98,7 @@ void async function getGlslAndDrawWebgl () {
 		return;
 	}
 	const image = new Image();
-	image.src = 'https://picsum.photos/200/300';
+	image.src = 'img.jpg';
 	image.addEventListener('load', () => {
 		drawWebglCanvas(fragment, vertex, gl, image);
 	});
