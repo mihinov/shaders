@@ -13,10 +13,6 @@ function debounce(f, t) {
 	}
 }
 
-function randomInt(range) {
-	return Math.floor(Math.random() * range);
-}
-
 function initwebgl(canvas) {
 	const context = canvas.getContext("webgl2") ||
 	canvas.getContext("webgl") ||
@@ -61,4 +57,10 @@ function resizeCanvas(gl) {
 	gl.canvas.width = width;
 	gl.canvas.height = height;
 	gl.viewport(0, 0, width, height);
+}
+
+function requestCORSIfNotSameOrigin(img, url) {
+	if ((new URL(url)).origin !== window.location.origin) {
+		img.crossOrigin = "";
+	}
 }

@@ -7,6 +7,51 @@
 </head>
 <body>
 
+<!-- <script  id="vertex-shader-2d" type="x-shader/x-vertex">
+attribute vec2 a_texCoord;
+
+attribute vec2 a_position;
+uniform vec2 u_resolution;
+
+varying vec2 v_texCoord;
+
+void main() {
+    // преобразуем положение в пикселях к диапазону от 0.0 до 1.0
+    vec2 zeroToOne = a_position / u_resolution;
+
+    // преобразуем из 0->1 в 0->2
+    vec2 zeroToTwo = zeroToOne * 2.0;
+
+    // преобразуем из 0->2 в -1->+1 (пространство отсечения)
+    vec2 clipSpace = zeroToTwo - 1.0;
+
+    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+
+    v_texCoord = a_texCoord;
+}
+</script>
+
+<script  id="fragment-shader-2d" type="not-js">
+precision mediump float;
+
+
+uniform sampler2D u_image; // наша текстура
+uniform vec2 u_textureSize; // размер текстуры
+
+
+varying vec2 v_texCoord; // texCoords, переданные из вершинного шейдера
+
+void main(){
+    // рассчитываем один пиксель в текстурных координатах
+    vec2 onePixel = vec2(1.0, 1.0) / u_textureSize;
+
+    // среднее между средним, правым и левым пикселем
+    gl_FragColor = (
+        texture2D(u_image, v_texCoord) +
+        texture2D(u_image, v_texCoord + vec2(onePixel.x, 0.0)) +
+        texture2D(u_image, v_texCoord + vec2(-onePixel.x, 0.0))) / 3.0;
+}
+</script> -->
 <canvas id="glcanvas">
 <script src="funcs.js"></script>
 <script src="script.js"></script>

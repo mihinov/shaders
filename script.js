@@ -3,102 +3,114 @@ function drawWebglCanvas(f, v, gl, image) {
 		resizeCanvas(gl);
 		const resizeFunc = () => {
 			resizeCanvas(gl);
+			render();
 		};
-		const lazyFunc = debounce(resizeFunc, 20);
+		const lazyFunc = debounce(resizeFunc, 100);
 		window.addEventListener('resize', lazyFunc);
 	}
+	resizeGlAndCanvas(gl);
+	gl.clearColor(0, 0, 0, 0);
+	gl.clear(gl.COLOR_BUFFER_BIT);
+
 	const vertexShader = createShader(gl, gl.VERTEX_SHADER, v);
 	const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, f);
 	const program = createProgram(gl, vertexShader, fragmentShader);
 
+	
+	const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
+	const resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
+	gl.useProgram(program);
+	gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 
-	// look up where the vertex data needs to go.
-	var positionLocation = gl.getAttribLocation(program, "a_position");
-	var texcoordLocation = gl.getAttribLocation(program, "a_texCoord");
-
-	// Create a buffer to put three 2d clip space points in
-	var positionBuffer = gl.createBuffer();
-
-	// Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
+	const positionBuffer = gl.createBuffer();
+	gl.enableVertexAttribArray(positionAttributeLocation);
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-	// Set a rectangle the same size as the image.
-	setRectangle(gl, 0, 0, image.width, image.height);
+	setRectangle(gl, 0, 0, gl.canvas.width, gl.canvas.height);
+	gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
 
-	// provide texture coordinates for the rectangle.
-	var texcoordBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+	// указываем координаты текстуры для прямоугольника
+	const texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
+	const texCoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
 		0.0,  0.0,
 		1.0,  0.0,
 		0.0,  1.0,
 		0.0,  1.0,
 		1.0,  0.0,
-		1.0,  1.0,
-	]), gl.STATIC_DRAW);
+		1.0,  1.0]), gl.STATIC_DRAW);
+	gl.enableVertexAttribArray(texCoordLocation);
+	gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
-	var texture = gl.createTexture();
+	// создаём текстуру
+	const texture = gl.createTexture();
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 
+	// задаём параметры, чтобы можно было отрисовать изображение любого размера
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
 	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+	const textureSizeLocation = gl.getUniformLocation(program, "u_textureSize");
+	gl.uniform2f(textureSizeLocation, gl.canvas.width, gl.canvas.height);
 
-	var resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+	function computeKernelWeight(kernel) {
+		const weight = kernel.reduce((prev, curr) => prev + curr);
+		return weight <= 0 ? 1 : weight;
+	}
 
-	gl.clearColor(0, 0, 0, 0);
-	gl.clear(gl.COLOR_BUFFER_BIT);
-
-	gl.useProgram(program);
-
-
-	gl.enableVertexAttribArray(positionLocation);
-	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-	gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-
-
-	gl.enableVertexAttribArray(texcoordLocation);
-	gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-	gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
-
-
-	gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
+	const kernelLocation = gl.getUniformLocation(program, "u_kernel[0]");
+	const kernelWeightLocation = gl.getUniformLocation(program, "u_kernelWeight");
+	const edgeDetectKernel = [
+		-1, -1, -1,
+      -1,  9, -1,
+      -1, -1, -1
+	];
+	gl.uniform1fv(kernelLocation, edgeDetectKernel);
+	gl.uniform1f(kernelWeightLocation, computeKernelWeight(edgeDetectKernel));
 
 	function render() {
-		var primitiveType = gl.TRIANGLES;
-		var offset = 0;
-		var count = 6;
+		const primitiveType = gl.TRIANGLES;
+		const offset = 0;
+		const count = 6;
+		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.drawArrays(primitiveType, offset, count);
 	}
+	render();
 }
 
 function setRectangle(gl, x, y, width, height) {
-	var x1 = x;
-	var x2 = x + width;
-	var y1 = y;
-	var y2 = y + height;
+	const x1 = x;
+	const x2 = x + width;
+	const y1 = y;
+	const y2 = y + height;
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-		x1, y1,
-		x2, y1,
-		x1, y2,
-		x1, y2,
-		x2, y1,
-		x2, y2,
+	   x1, y1,
+	   x2, y1,
+	   x1, y2,
+	   x1, y2,
+	   x2, y1,
+	   x2, y2,
 	]), gl.STATIC_DRAW);
-}
+  }
 
-void async function getGlslAndDrawWebgl () {
+void async function () {
 	const fragment = await sendGetRequest('fragment.glsl'); // получаю текст из файла
 	const vertex = await sendGetRequest('vertex.glsl'); // получаю текст из файла
+	// const fragment = document.querySelector('#fragment-shader-2d').innerText;
+	// const vertex = document.querySelector('#vertex-shader-2d').innerText;
 	const canvas = document.querySelector('#glcanvas');
 	const gl = initwebgl(canvas);
     if (!gl) {
 		return;
 	}
 	const image = new Image();
-	image.src = 'img.jpg';
+	const url = "https://picsum.photos/1000/700";
+	requestCORSIfNotSameOrigin(image, url);
+	image.src = url;
+	image.crossOrigin = "";
 	image.addEventListener('load', () => {
 		drawWebglCanvas(fragment, vertex, gl, image);
 	});
