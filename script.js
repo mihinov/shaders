@@ -22,16 +22,16 @@ function drawWebglCanvas(f, v, gl, image) {
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 	setRectangle(gl, 0, 0, gl.canvas.width,  gl.canvas.height);
 
-	// const texCoordBuffer = gl.createBuffer();
-	// gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-	// gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-	// 	0.0,  0.0,
-	// 	1.0,  0.0,
-	// 	0.0,  1.0,
-	// 	0.0,  1.0,
-	// 	1.0,  0.0,
-	// 	1.0,  1.0
-	// ]), gl.STATIC_DRAW);
+	const texCoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+		0.0,  0.0,
+		1.0,  0.0,
+		0.0,  1.0,
+		0.0,  1.0,
+		1.0,  0.0,
+		1.0,  1.0
+	]), gl.STATIC_DRAW);
 
 	// создаём текстуру
 	const texture = gl.createTexture();
@@ -188,18 +188,7 @@ function drawWebglCanvas(f, v, gl, image) {
 		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 		gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(texcoordLocation);
-		
-		const texCoordBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-			0.0,  0.0,
-			1.0,  0.0,
-			0.0,  1.0,
-			0.0,  1.0,
-			1.0,  0.0,
-			1.0,  1.0
-		]), gl.STATIC_DRAW);
-
 		gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
 		gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
 		gl.uniform2f(textureSizeLocation, gl.canvas.width, gl.canvas.height);
