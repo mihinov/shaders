@@ -9,8 +9,6 @@ function drawWebglCanvas(f, v, gl, image) {
 		window.addEventListener('resize', lazyFunc);
 	}
 	resizeGlAndCanvas(gl);
-	gl.clearColor(0, 0, 0, 0);
-	gl.clear(gl.COLOR_BUFFER_BIT);
 
 	const vertexShader = createShader(gl, gl.VERTEX_SHADER, v);
 	const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, f);
@@ -22,7 +20,7 @@ function drawWebglCanvas(f, v, gl, image) {
 
 	const positionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-	setRectangle( gl, 0, 0, gl.canvas.width,  gl.canvas.height);
+	setRectangle(gl, 0, 0, gl.canvas.width,  gl.canvas.height);
 
 	const texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
@@ -176,6 +174,7 @@ function drawWebglCanvas(f, v, gl, image) {
 		drawWithKernel(this.options[this.selectedIndex].value);
 	});
 	ui.appendChild(select);
+
 	drawWithKernel(initialSelection);
 
 	function computeKernelWeight(kernel) {
@@ -191,10 +190,10 @@ function drawWebglCanvas(f, v, gl, image) {
 		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 		gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(texcoordLocation);
-		gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+		// gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
 		gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
 		gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
-		gl.uniform2f(textureSizeLocation, image.width, image.height);
+		gl.uniform2f(textureSizeLocation, gl.canvas.width, gl.canvas.height);
 		gl.uniform1fv(kernelLocation, kernels[name]);
 		gl.uniform1f(kernelWeightLocation, computeKernelWeight(kernels[name]));
 		render();
