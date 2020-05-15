@@ -155,7 +155,7 @@ function drawWebglCanvas(f, v, gl, image) {
 		]
 	};
 
-	const initialSelection = 'edgeDetect2';
+	const initialSelection = 'normal';
 
 	const ui = document.querySelector("#ui");
 	const select = document.createElement("select");
