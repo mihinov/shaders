@@ -172,7 +172,7 @@ function drawWebglCanvas(f, v, gl, image) {
 		select.appendChild(option);
 	}
 
-	select.addEventListener('change', (e) => {
+	select.addEventListener('change', function(e) {
 		drawWithKernel(this.options[this.selectedIndex].value);
 	});
 	ui.appendChild(select);
@@ -239,7 +239,6 @@ void async function () {
 	const url = "https://picsum.photos/1000/700";
 	requestCORSIfNotSameOrigin(image, url);
 	image.src = url;
-	image.crossOrigin = "";
 	image.addEventListener('load', () => {
 		drawWebglCanvas(fragment, vertex, gl, image);
 	});
