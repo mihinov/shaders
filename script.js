@@ -226,10 +226,10 @@ function setRectangle(gl, x, y, width, height) {
   }
 
 void async function () {
-	const fragment = await sendGetRequest('fragment.glsl'); // получаю текст из файла
-	const vertex = await sendGetRequest('vertex.glsl'); // получаю текст из файла
-	// const fragment = document.querySelector('#fragment-shader-2d').innerText;
-	// const vertex = document.querySelector('#vertex-shader-2d').innerText;
+	// const fragment = await sendGetRequest('fragment.glsl'); // получаю текст из файла
+	// const vertex = await sendGetRequest('vertex.glsl'); // получаю текст из файла
+	const fragment = document.querySelector('#fragment-shader-2d').innerText;
+	const vertex = document.querySelector('#vertex-shader-2d').innerText;
 	const canvas = document.querySelector('#glcanvas');
 	const gl = initwebgl(canvas);
     if (!gl) {

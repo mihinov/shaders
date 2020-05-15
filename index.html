@@ -11,7 +11,7 @@
     <div id="ui"></div>
 </div>
 
-<!-- <script  id="vertex-shader-2d" type="x-shader/x-vertex">
+<script  id="vertex-shader-2d" type="not-js">
 attribute vec2 a_texCoord;
 
 attribute vec2 a_position;
@@ -38,10 +38,10 @@ void main() {
 <script  id="fragment-shader-2d" type="not-js">
 precision mediump float;
 
-
 uniform sampler2D u_image; // наша текстура
 uniform vec2 u_textureSize; // размер текстуры
-
+uniform float u_kernel[9];
+uniform float u_kernelWeight;
 
 varying vec2 v_texCoord; // texCoords, переданные из вершинного шейдера
 
@@ -49,13 +49,20 @@ void main(){
     // рассчитываем один пиксель в текстурных координатах
     vec2 onePixel = vec2(1.0, 1.0) / u_textureSize;
 
-    // среднее между средним, правым и левым пикселем
-    gl_FragColor = (
-        texture2D(u_image, v_texCoord) +
-        texture2D(u_image, v_texCoord + vec2(onePixel.x, 0.0)) +
-        texture2D(u_image, v_texCoord + vec2(-onePixel.x, 0.0))) / 3.0;
+    vec4 colorSum =
+        texture2D(u_image, v_texCoord + onePixel * vec2(-1, -1)) * u_kernel[0] +
+        texture2D(u_image, v_texCoord + onePixel * vec2( 0, -1)) * u_kernel[1] +
+        texture2D(u_image, v_texCoord + onePixel * vec2( 1, -1)) * u_kernel[2] +
+        texture2D(u_image, v_texCoord + onePixel * vec2(-1,  0)) * u_kernel[3] +
+        texture2D(u_image, v_texCoord + onePixel * vec2( 0,  0)) * u_kernel[4] +
+        texture2D(u_image, v_texCoord + onePixel * vec2( 1,  0)) * u_kernel[5] +
+        texture2D(u_image, v_texCoord + onePixel * vec2(-1,  1)) * u_kernel[6] +
+        texture2D(u_image, v_texCoord + onePixel * vec2( 0,  1)) * u_kernel[7] +
+        texture2D(u_image, v_texCoord + onePixel * vec2( 1,  1)) * u_kernel[8] ;
+
+    gl_FragColor = vec4((colorSum / u_kernelWeight).rgb, 1.0);
 }
-</script> -->
+</script>
 <canvas id="glcanvas">
 <script src="funcs.js"></script>
 <script src="script.js"></script>
