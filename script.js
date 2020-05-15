@@ -228,12 +228,12 @@ void async function () {
 	// const fragment = document.querySelector('#fragment-shader-2d').innerText;
 	// const vertex = document.querySelector('#vertex-shader-2d').innerText;
 	const canvas = document.querySelector('#glcanvas');
-	const gl = initwebgl(canvas);
+	const gl = canvas.getContext("webgl");
     if (!gl) {
 		return;
 	}
 	const image = new Image();
-	const url = "https://picsum.photos/1000/700";
+	const url = "https://picsum.photos/2000/900";
 	requestCORSIfNotSameOrigin(image, url);
 	image.src = url;
 	image.addEventListener('load', () => {
