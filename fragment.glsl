@@ -22,5 +22,5 @@ void main(){
         texture2D(u_image, v_texCoord + onePixel * vec2( 0,  1)) * u_kernel[7] +
         texture2D(u_image, v_texCoord + onePixel * vec2( 1,  1)) * u_kernel[8] ;
 
-    gl_FragColor = vec4((colorSum / u_kernelWeight).rgb, 1.0);
+    gl_FragColor = vec4((colorSum / u_kernelWeight).rgb, 1);
 }

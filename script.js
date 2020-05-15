@@ -22,16 +22,16 @@ function drawWebglCanvas(f, v, gl, image) {
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 	setRectangle(gl, 0, 0, gl.canvas.width,  gl.canvas.height);
 
-	const texCoordBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-		0.0,  0.0,
-		1.0,  0.0,
-		0.0,  1.0,
-		0.0,  1.0,
-		1.0,  0.0,
-		1.0,  1.0
-	]), gl.STATIC_DRAW);
+	// const texCoordBuffer = gl.createBuffer();
+	// gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+	// gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+	// 	0.0,  0.0,
+	// 	1.0,  0.0,
+	// 	0.0,  1.0,
+	// 	0.0,  1.0,
+	// 	1.0,  0.0,
+	// 	1.0,  1.0
+	// ]), gl.STATIC_DRAW);
 
 	// создаём текстуру
 	const texture = gl.createTexture();
@@ -173,8 +173,8 @@ function drawWebglCanvas(f, v, gl, image) {
 	select.addEventListener('change', function(e) {
 		drawWithKernel(this.options[this.selectedIndex].value);
 	});
-	ui.appendChild(select);
 
+	ui.appendChild(select);
 	drawWithKernel(initialSelection);
 
 	function computeKernelWeight(kernel) {
@@ -183,14 +183,21 @@ function drawWebglCanvas(f, v, gl, image) {
 	}
 
 	function drawWithKernel(name) {
-    	gl.clearColor(0, 0, 0, 0);
-		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.useProgram(program);
 		gl.enableVertexAttribArray(positionLocation);
 		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 		gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(texcoordLocation);
-		// gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+		const texCoordBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+			0.0,  0.0,
+			1.0,  0.0,
+			0.0,  1.0,
+			0.0,  1.0,
+			1.0,  0.0,
+			1.0,  1.0
+		]), gl.STATIC_DRAW);
 		gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
 		gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
 		gl.uniform2f(textureSizeLocation, gl.canvas.width, gl.canvas.height);
@@ -225,10 +232,10 @@ function setRectangle(gl, x, y, width, height) {
   }
 
 void async function () {
-	// const fragment = await sendGetRequest('fragment.glsl'); // получаю текст из файла
-	// const vertex = await sendGetRequest('vertex.glsl'); // получаю текст из файла
-	const fragment = document.querySelector('#fragment-shader-2d').innerText;
-	const vertex = document.querySelector('#vertex-shader-2d').innerText;
+	const fragment = await sendGetRequest('fragment.glsl'); // получаю текст из файла
+	const vertex = await sendGetRequest('vertex.glsl'); // получаю текст из файла
+	// const fragment = document.querySelector('#fragment-shader-2d').innerText;
+	// const vertex = document.querySelector('#vertex-shader-2d').innerText;
 	const canvas = document.querySelector('#glcanvas');
 	const gl = initwebgl(canvas);
     if (!gl) {
