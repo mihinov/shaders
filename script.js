@@ -22,7 +22,7 @@ function drawWebglCanvas(f, v, gl, image) {
 
 	const positionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-	setRectangle( gl, 0, 0, image.width, image.height);
+	setRectangle( gl, 0, 0, gl.canvas.width,  gl.canvas.height);
 
 	const texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
@@ -34,7 +34,6 @@ function drawWebglCanvas(f, v, gl, image) {
 		1.0,  0.0,
 		1.0,  1.0
 	]), gl.STATIC_DRAW);
-	console.log(texcoordBuffer);
 
 	// создаём текстуру
 	const texture = gl.createTexture();
