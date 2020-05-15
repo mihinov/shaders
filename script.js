@@ -183,6 +183,7 @@ function drawWebglCanvas(f, v, gl, image) {
 	}
 
 	function drawWithKernel(name) {
+		resizeCanvas(gl);
 		gl.useProgram(program);
 		gl.enableVertexAttribArray(positionLocation);
 		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
