@@ -1,21 +1,15 @@
 precision mediump float;
 
-
 uniform sampler2D u_image; // наша текстура
 uniform vec2 u_textureSize; // размер текстуры
 uniform float u_kernel[9];
 uniform float u_kernelWeight;
-
 
 varying vec2 v_texCoord; // texCoords, переданные из вершинного шейдера
 
 void main(){
     // рассчитываем один пиксель в текстурных координатах
     vec2 onePixel = vec2(1.0, 1.0) / u_textureSize;
-
-    vec2 mediumPixel = v_texCoord;
-    vec2 rightPixel = v_texCoord + vec2(onePixel.x, 0.0);
-    vec2 leftPixel = v_texCoord + vec2(-onePixel.x, 0.0);
 
     vec4 colorSum =
         texture2D(u_image, v_texCoord + onePixel * vec2(-1, -1)) * u_kernel[0] +
@@ -28,11 +22,5 @@ void main(){
         texture2D(u_image, v_texCoord + onePixel * vec2( 0,  1)) * u_kernel[7] +
         texture2D(u_image, v_texCoord + onePixel * vec2( 1,  1)) * u_kernel[8] ;
 
-   // среднее между средним, правым и левым пикселем
     gl_FragColor = vec4((colorSum / u_kernelWeight).rgb, 1.0);
-    // gl_FragColor = (
-    //     texture2D(u_image, mediumPixel) +
-    //     texture2D(u_image, rightPixel) +
-    //     texture2D(u_image, leftPixel)
-    // ) / 3.0;
 }

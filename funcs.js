@@ -14,9 +14,10 @@ function debounce(f, t) {
 }
 
 function initwebgl(canvas) {
-	const context = canvas.getContext("webgl2") ||
-	canvas.getContext("webgl") ||
-	canvas.getContext("experimental-webgl");
+	// const context = canvas.getContext("webgl2") ||
+	// canvas.getContext("webgl") ||
+	// canvas.getContext("experimental-webgl");
+	const context = canvas.getContext("webgl");
 	if (!context) {
 		alert('У вас не поддерживается webgl, используйте новый Google Chrome');
 	}
