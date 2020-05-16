@@ -185,7 +185,9 @@ function drawWebglCanvas(f, v, gl, image) {
 	function drawWithKernel(name) {
 		gl.useProgram(program);
 		gl.enableVertexAttribArray(positionLocation);
+		const positionBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+		setRectangle(gl, 0, 0, gl.canvas.width,  gl.canvas.height);
 		gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(texcoordLocation);
 		gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
@@ -194,6 +196,7 @@ function drawWebglCanvas(f, v, gl, image) {
 		gl.uniform2f(textureSizeLocation, gl.canvas.width, gl.canvas.height);
 		gl.uniform1fv(kernelLocation, kernels[name]);
 		gl.uniform1f(kernelWeightLocation, computeKernelWeight(kernels[name]));
+		resizeCanvas(gl);
 		render();
 	}
 
